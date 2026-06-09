@@ -312,19 +312,28 @@ async function carregarUm(tipo) {
     const res = await fetch(url + '?t=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
 
-    // Lê com progresso
+    // Lê com progresso — yield ao navegador a cada chunk para redesenhar
     const reader = res.body.getReader();
     const total = parseInt(res.headers.get('content-length') || '0');
     let received = 0;
     const chunks = [];
+    const yield2browser = () => new Promise(r => setTimeout(r, 0));
+    let lastUpdate = 0;
     while (true) {
       const {done, value} = await reader.read();
       if (done) break;
       chunks.push(value);
       received += value.length;
-      if (total > 0) {
-        const pct = Math.round(received / total * 100);
-        nameEl.textContent = nome + ' — ' + pct + '%';
+      const now = Date.now();
+      if (now - lastUpdate > 80) { // atualiza tela a cada 80ms
+        lastUpdate = now;
+        if (total > 0) {
+          const pct = Math.round(received / total * 100);
+          nameEl.textContent = nome + ' — ' + pct + '%';
+        } else {
+          nameEl.textContent = nome + ' — ' + (received / 1024 / 1024).toFixed(1) + ' MB';
+        }
+        await yield2browser(); // deixa o navegador redesenhar
       }
     }
     const buf = new Uint8Array(chunks.reduce((a,c) => a + c.length, 0));
