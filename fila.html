@@ -296,8 +296,10 @@ async function carregarUm(tipo) {
   try {
     const cached = sessionStorage.getItem(cacheKey);
     if (cached) {
-      const buf = Uint8Array.from(atob(cached), c => c.charCodeAt(0)).buffer;
-      wbs[tipo] = XLSX.read(new Uint8Array(buf), {type:'array', cellDates:true});
+      const binary = atob(cached);
+      const buf = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) buf[i] = binary.charCodeAt(i);
+      wbs[tipo] = XLSX.read(buf, {type:'array', cellDates:true});
       iconEl.textContent = '✅';
       nameEl.textContent = nome + ' (cache)';
       statusEl.classList.add('ok');
@@ -331,11 +333,15 @@ async function carregarUm(tipo) {
 
     wbs[tipo] = XLSX.read(buf, {type:'array', cellDates:true});
 
-    // Salva no cache (só se couber — arquivos grandes podem estourar)
+    // Salva no cache (converte em chunks para não estourar a pilha)
     try {
-      const b64 = btoa(String.fromCharCode(...buf));
+      let b64 = '';
+      const chunkSize = 8192;
+      for (let i = 0; i < buf.length; i += chunkSize) {
+        b64 += btoa(String.fromCharCode(...buf.slice(i, i + chunkSize)));
+      }
       sessionStorage.setItem(cacheKey, b64);
-    } catch(e) { /* arquivo muito grande para cache */ }
+    } catch(e) { /* arquivo muito grande para cache, ignora */ }
 
     iconEl.textContent = '✅';
     nameEl.textContent = nome + ' pronto';
