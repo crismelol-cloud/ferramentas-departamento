@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Contar Dias</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#f5f5f4; --surface:#ffffff; --surface2:#f0efe9;
+  --border:rgba(0,0,0,0.10); --border2:rgba(0,0,0,0.18);
+  --text:#1a1917; --text2:#6b6a65; --text3:#aaa9a3;
+  --accent:#1a5fa8; --accent2:#1a5fa812;
+  --radius:8px; --radius-lg:14px;
+}
+body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; padding:1.25rem; }
+/* ═══ CONTAR DIAS ═════════════════════════════════════════════ */
+/* ── Contar Dias ── */
+#dias-wrapper {
+  padding: 1.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+.dias-container { max-width: 680px; display: flex; flex-direction: column; gap: 1rem; }
+.dias-card { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--radius-lg); padding: 1.5rem; }
+.dias-section-title { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1.25rem; }
+.dias-field-row { margin-bottom: 1rem; }
+.dias-field-row.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:500px){ .dias-field-row.two { grid-template-columns: 1fr; } }
+.dias-field { display: flex; flex-direction: column; gap: 6px; }
+.dias-label { font-size: 13px; font-weight: 500; color: var(--text2); }
+.dias-input { height: 38px; padding: 0 10px; border: 0.5px solid var(--border2); border-radius: 8px; background: var(--surface2); font-size: 14px; color: var(--text); outline: none; font-family: inherit; width: 100%; transition: border-color 0.15s; }
+.dias-input:focus { border-color: var(--accent); background: var(--surface); }
+.dias-textarea { padding: 10px; border: 0.5px solid var(--border2); border-radius: 8px; background: var(--surface2); font-size: 13px; color: var(--text); outline: none; font-family: monospace; width: 100%; height: 100px; resize: vertical; transition: border-color 0.15s; line-height: 1.6; }
+.dias-textarea:focus { border-color: var(--accent); background: var(--surface); }
+.dias-toggle-group { display: flex; gap: 6px; }
+.dias-toggle { padding: 7px 14px; border: 0.5px solid var(--border2); border-radius: 8px; background: var(--surface2); font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.dias-toggle.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.feriados-sugestoes { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.btn-sugestao { padding: 4px 10px; border: 0.5px solid var(--border2); border-radius: 20px; background: var(--surface2); font-size: 12px; font-weight: 500; color: var(--text2); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-sugestao:hover { background: var(--accent2); color: var(--accent); border-color: var(--accent); }
+.dias-btn-calcular { width: 100%; height: 42px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 8px; transition: opacity 0.15s; }
+.dias-btn-calcular:hover { opacity: 0.88; }
+.dias-error { display: none; padding: 8px 12px; background: #FCEBEB; border-radius: 8px; font-size: 13px; color: #791F1F; margin-bottom: 8px; }
+.dias-error.visible { display: block; }
+.resultado-card { border-left: 4px solid var(--accent); }
+.resultado-destaque { text-align: center; padding: 1.5rem 1rem; background: var(--accent2); border-radius: 10px; margin-bottom: 1.25rem; }
+.resultado-data { font-size: 36px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+.resultado-label { font-size: 12px; color: var(--text2); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.resultado-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+@media(max-width:480px){ .resultado-grid { grid-template-columns: 1fr; } }
+.res-item { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+.res-label { font-size: 11px; color: var(--text2); margin-bottom: 3px; }
+.res-value { font-size: 14px; font-weight: 600; color: var(--text); }
+.feriados-lista { background: var(--surface2); border-radius: 8px; padding: 10px 12px; margin-bottom: 1rem; }
+.feriados-lista-item { font-size: 13px; color: var(--text2); padding: 2px 0; }
+.dias-btn-novo { width: 100%; height: 38px; background: none; border: 0.5px solid var(--border2); border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text2); cursor: pointer; font-family: inherit; transition: background 0.15s; margin-top: 4px; }
+.dias-btn-novo:hover { background: var(--surface2); }
+
+/* ── Sistema embutido ── */
+#sistema-wrapper .container { max-width: none; padding: 0; }
+#sistema-wrapper .container{ max-width: 720px; margin: 0 auto; }#sistema-wrapper header{ margin-bottom: 2rem; }#sistema-wrapper header h1{ font-size: 22px; font-weight: 700; color: var(--text); }#sistema-wrapper header p{ font-size: 14px; color: var(--text2); margin-top: 4px; }#sistema-wrapper .card{ background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }#sistema-wrapper .section-title{ font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }#sistema-wrapper .field-row{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+@media(max-width:480px){ .field-row { grid-template-columns: 1fr; } }#sistema-wrapper .field{ display: flex; flex-direction: column; gap: 5px; }#sistema-wrapper .field label{ font-size: 13px; color: var(--text2); font-weight: 500; }#sistema-wrapper .field input{ height: 38px; padding: 0 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg2); font-size: 14px; color: var(--text); outline: none; font-family: inherit; transition: border-color 0.15s, background 0.15s; }#sistema-wrapper .field input:focus{ border-color: #378ADD; background: var(--bg); }#sistema-wrapper /* Upload cards side by side */
+.upload-row{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+@media(max-width:540px){ .upload-row { grid-template-columns: 1fr; } }#sistema-wrapper .upload-card{ background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }#sistema-wrapper .upload-area{ border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 1rem; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--bg2); }#sistema-wrapper .upload-area:hover, #sistema-wrapper .upload-area.drag-over{ border-color: #378ADD; background: var(--bg); }#sistema-wrapper .upload-area.has-file{ border-style: solid; border-color: var(--success-border); }#sistema-wrapper .upload-icon{ font-size: 24px; margin-bottom: 4px; }#sistema-wrapper .upload-name{ font-size: 12px; color: var(--text2); margin-bottom: 2px; word-break: break-all; }#sistema-wrapper .upload-area.has-file .upload-name{ color: var(--green-txt); font-weight: 600; }#sistema-wrapper .upload-hint{ font-size: 11px; color: var(--text3); }#sistema-wrapper input[type=file]{ display: none; }#sistema-wrapper .btn-buscar{ width: 100%; height: 44px; background: var(--text); color: var(--bg3); border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 0.15s, transform 0.1s; font-family: inherit; }#sistema-wrapper .btn-buscar:hover{ opacity: 0.85; }#sistema-wrapper .btn-buscar:active{ transform: scale(0.99); }#sistema-wrapper .btn-buscar:disabled{ opacity: 0.4; cursor: not-allowed; }#sistema-wrapper .error-msg{ display: none; padding: 10px 14px; background: var(--danger-bg); border-radius: var(--radius); margin-bottom: 12px; font-size: 13px; color: var(--danger-txt); }#sistema-wrapper .error-msg.visible{ display: block; }#sistema-wrapper .loading{ display: none; align-items: center; gap: 10px; padding: 10px 0; font-size: 14px; color: var(--text2); }#sistema-wrapper .loading.visible{ display: flex; }#sistema-wrapper .spinner{ width: 18px; height: 18px; flex-shrink: 0; border: 2px solid var(--border2); border-top-color: #378ADD; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }#sistema-wrapper /* Step 2 — escolha de procedimentos */
+.step2{ display: none; }#sistema-wrapper .step2.visible{ display: block; }#sistema-wrapper .patient-name{ font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 4px; }#sistema-wrapper .patient-meta{ font-size: 13px; color: var(--text2); margin-bottom: 1rem; }#sistema-wrapper .proc-list{ display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }#sistema-wrapper .proc-item{ display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg2); cursor: pointer; transition: all 0.15s; user-select: none; }#sistema-wrapper .proc-item:hover{ background: var(--bg); border-color: #378ADD; }#sistema-wrapper .proc-item.selected{ background: var(--blue-bg); border-color: #378ADD; }#sistema-wrapper .proc-check{ width: 20px; height: 20px; border: 2px solid var(--border2); border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-size: 13px; }#sistema-wrapper .proc-item.selected .proc-check{ background: #378ADD; border-color: #378ADD; color: #fff; }#sistema-wrapper .proc-info{ flex: 1; min-width: 0; }#sistema-wrapper .proc-code{ font-size: 12px; color: var(--text3); font-family: monospace; }#sistema-wrapper .proc-name{ font-size: 13px; font-weight: 600; color: var(--text); }#sistema-wrapper .proc-badge{ font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 5px; flex-shrink: 0; }#sistema-wrapper .proc-badge-aih{ background: var(--blue-bg);  color: var(--blue-txt); }#sistema-wrapper .proc-badge-apac{ background: var(--green-bg); color: var(--green-txt); }#sistema-wrapper .btn-ver{ width: 100%; height: 42px; background: #1A6FC4; color: #fff; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }#sistema-wrapper .btn-ver:hover{ opacity: 0.88; }#sistema-wrapper .btn-ver:disabled{ opacity: 0.4; cursor: not-allowed; }#sistema-wrapper .btn-nova{ margin-top: 8px; width: 100%; height: 38px; background: transparent; color: var(--text2); border: 0.5px solid var(--border2); border-radius: var(--radius); font-size: 14px; cursor: pointer; font-family: inherit; transition: background 0.15s; }#sistema-wrapper .btn-nova:hover{ background: var(--bg2); }#sistema-wrapper /* Results */
+.results{ display: none; margin-top: 1rem; }#sistema-wrapper .results.visible{ display: block; }#sistema-wrapper .result-header{ display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }#sistema-wrapper .badge{ display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: var(--radius); }#sistema-wrapper .badge-aih{ background: var(--blue-bg); color: var(--blue-txt); }#sistema-wrapper .badge-apac{ background: var(--green-bg); color: var(--green-txt); }#sistema-wrapper .badge-found{ background: var(--green-bg); color: var(--green-txt); }#sistema-wrapper .badge-notfound{ background: var(--red-bg); color: var(--red-txt); }#sistema-wrapper .badge-priority{ background: var(--amber-bg); color: var(--amber-txt); }#sistema-wrapper .stats-grid{ display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 1rem; }
+@media(max-width:480px){ .stats-grid { grid-template-columns: repeat(2,1fr); } }#sistema-wrapper .stat-card{ background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; }#sistema-wrapper .stat-label{ font-size: 11px; color: var(--text2); margin-bottom: 4px; line-height: 1.3; }#sistema-wrapper .stat-value{ font-size: 24px; font-weight: 700; color: var(--text); line-height: 1; }#sistema-wrapper .stat-value.blue{ color: #1A6FC4; }#sistema-wrapper .stat-value.amber{ color: #BA7517; }#sistema-wrapper .stat-value.muted{ font-size: 16px; font-weight: 500; color: var(--text3); margin-top: 3px; }#sistema-wrapper .stats-subheader{ font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin: 12px 0 6px; }#sistema-wrapper .stats-subheader em{ font-style: normal; text-transform: none; font-weight: 400; color: var(--text3); }#sistema-wrapper .divider{ height: 0.5px; background: var(--border); margin: 14px 0; }#sistema-wrapper .info-table{ width: 100%; border-collapse: collapse; font-size: 13px; }#sistema-wrapper .info-table tr{ border-top: 0.5px solid var(--border); }#sistema-wrapper .info-table tr:first-child{ border-top: none; }#sistema-wrapper .info-table td{ padding: 7px 4px; vertical-align: top; }#sistema-wrapper .info-table td:first-child{ color: var(--text2); width: 44%; white-space: nowrap; }#sistema-wrapper .info-table td:last-child{ color: var(--text); word-break: break-word; font-weight: 500; }#sistema-wrapper .notice{ display: flex; gap: 10px; align-items: flex-start; padding: 10px 13px; border-radius: var(--radius); font-size: 13px; line-height: 1.5; margin-top: 10px; }#sistema-wrapper .notice.warn{ background: var(--amber-bg); color: var(--amber-txt); }#sistema-wrapper .notice.danger{ background: var(--danger-bg); color: var(--danger-txt); }#sistema-wrapper .back-btn{ display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text2); cursor: pointer; margin-bottom: 1rem; background: none; border: none; font-family: inherit; padding: 0; }#sistema-wrapper .back-btn:hover{ color: var(--text); }
+
+@media(max-width:640px) {
+  .p-sidebar { display: none; }
+  #page-home { padding: 1.25rem; }
+}
+
+</style>
+</head>
+<body>
+<div id="dias-wrapper">
+<div class="dias-container">
+          <div class="dias-card">
+            <div class="dias-section-title">Configuração do cálculo</div>
+
+            <!-- Tipo de dias -->
+            <div class="dias-field-row">
+              <div class="dias-field">
+                <label class="dias-label">Tipo de contagem</label>
+                <div class="dias-toggle-group">
+                  <button class="dias-toggle active" id="toggle-uteis" onclick="setTipo('uteis')">📅 Dias úteis</button>
+                  <button class="dias-toggle" id="toggle-corridos" onclick="setTipo('corridos')">🗓️ Dias corridos</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quantidade de dias -->
+            <div class="dias-field-row">
+              <div class="dias-field">
+                <label class="dias-label">Quantidade de dias</label>
+                <input type="number" id="qtd-dias" class="dias-input" min="1" placeholder="Ex: 30" />
+              </div>
+            </div>
+
+            <!-- Data de início -->
+            <div class="dias-field-row two">
+              <div class="dias-field">
+                <label class="dias-label">Data de início</label>
+                <input type="date" id="data-inicio" class="dias-input" />
+              </div>
+              <div class="dias-field">
+                <label class="dias-label">Considerar data de início?</label>
+                <div class="dias-toggle-group">
+                  <button class="dias-toggle active" id="toggle-incluir" onclick="setIncluir(true)">✅ Incluir</button>
+                  <button class="dias-toggle" id="toggle-excluir" onclick="setIncluir(false)">❌ Excluir</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feriados -->
+            <div class="dias-field-row" id="feriados-section">
+              <div class="dias-field" style="width:100%">
+                <label class="dias-label">Feriados <span style="font-weight:400;color:var(--text3)">(somente para dias úteis — um por linha: dd/mm/aaaa)</span></label>
+                <div class="feriados-sugestoes">
+                  <span style="font-size:12px;color:var(--text2);margin-right:6px">Sugestões:</span>
+                  <button class="btn-sugestao" onclick="adicionarFeriadosNacionais()">🇧🇷 Feriados nacionais 2026</button>
+                  <button class="btn-sugestao" onclick="limparFeriados()">🗑️ Limpar</button>
+                </div>
+                <textarea id="feriados-input" class="dias-textarea" placeholder="01/01/2026&#10;03/04/2026&#10;21/04/2026&#10;01/05/2026&#10;07/09/2026&#10;12/10/2026&#10;25/12/2026"></textarea>
+              </div>
+            </div>
+
+            <div class="dias-error" id="dias-error"></div>
+
+            <button class="dias-btn-calcular" onclick="calcularDias()">📐 Calcular</button>
+          </div>
+
+          <!-- Resultado -->
+          <div class="dias-resultado" id="dias-resultado" style="display:none">
+            <div class="dias-card resultado-card">
+              <div class="dias-section-title">📊 Resultado</div>
+
+              <div class="resultado-destaque">
+                <div class="resultado-data" id="res-data-final"></div>
+                <div class="resultado-label">Data final calculada</div>
+              </div>
+
+              <div class="resultado-grid">
+                <div class="res-item">
+                  <div class="res-label">Data de início</div>
+                  <div class="res-value" id="res-inicio"></div>
+                </div>
+                <div class="res-item">
+                  <div class="res-label">Tipo de contagem</div>
+                  <div class="res-value" id="res-tipo"></div>
+                </div>
+                <div class="res-item">
+                  <div class="res-label">Dias solicitados</div>
+                  <div class="res-value" id="res-qtd"></div>
+                </div>
+                <div class="res-item">
+                  <div class="res-label">Início considerado</div>
+                  <div class="res-value" id="res-incluir"></div>
+                </div>
+                <div class="res-item" id="res-feriados-item">
+                  <div class="res-label">Feriados descontados</div>
+                  <div class="res-value" id="res-feriados-qtd"></div>
+                </div>
+                <div class="res-item" id="res-fins-item">
+                  <div class="res-label">Fins de semana pulados</div>
+                  <div class="res-value" id="res-fins-qtd"></div>
+                </div>
+                <div class="res-item">
+                  <div class="res-label">Dias corridos totais</div>
+                  <div class="res-value" id="res-corridos-total"></div>
+                </div>
+              </div>
+
+              <div class="feriados-lista" id="feriados-lista-res" style="display:none">
+                <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">Feriados no período:</div>
+                <div id="feriados-lista-itens"></div>
+              </div>
+
+              <button class="dias-btn-novo" onclick="novoCálculo()">↺ Novo cálculo</button>
+            </div>
+          </div>
+</div>
+<script>
+
+// ── NAVEGAÇÃO ────────────────────────────────────────────────
+function showHome() {
+  document.getElementById('page-home').style.display = 'block';
+  document.querySelectorAll('.p-tool-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.p-menu-item').forEach(m => m.classList.remove('active'));
+  document.getElementById('menu-home').classList.add('active');
+}
+
+function showTool(tool) {
+  document.getElementById('page-home').style.display = 'none';
+  document.querySelectorAll('.p-tool-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.p-menu-item').forEach(m => m.classList.remove('active'));
+  document.getElementById('page-' + tool).classList.add('active');
+  document.getElementById('menu-' + tool).classList.add('active');
+}
+
+// ── SISTEMA FILA + CONTAR DIAS ───────────────────────────────
+function showHome() {
+  document.getElementById('page-home').style.display = 'block';
+  document.querySelectorAll('.tool-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  document.getElementById('menu-home').classList.add('active');
+}
+
+function showTool(tool) {
+  document.getElementById('page-home').style.display = 'none';
+  document.getElementById('menu-home').classList.remove('active');
+  // Hide all tool pages
+  document.querySelectorAll('.tool-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+  if (tool === 'fila') {
+    document.getElementById('page-fila').classList.add('active');
+    document.getElementById('menu-fila').classList.add('active');
+  } else if (tool === 'dias') {
+    document.getElementById('page-dias').classList.add('active');
+    document.getElementById('menu-dias').classList.add('active');
+  }
+}
+
+// ── Contar Dias ──────────────────────────────────────────────────────────────
+let tipoContagem = 'uteis';
+let incluirInicio = true;
+
+function setTipo(t) {
+  tipoContagem = t;
+  document.getElementById('toggle-uteis').classList.toggle('active', t==='uteis');
+  document.getElementById('toggle-corridos').classList.toggle('active', t==='corridos');
+  document.getElementById('feriados-section').style.display = t==='uteis' ? 'block' : 'none';
+}
+
+function setIncluir(v) {
+  incluirInicio = v;
+  document.getElementById('toggle-incluir').classList.toggle('active', v===true);
+  document.getElementById('toggle-excluir').classList.toggle('active', v===false);
+}
+
+function adicionarFeriadosNacionais() {
+  const nacionais = [
+    '01/01/2026','03/04/2026','21/04/2026','01/05/2026',
+    '11/06/2026','07/09/2026','12/10/2026','02/11/2026',
+    '15/11/2026','20/11/2026','25/12/2026'
+  ];
+  const ta = document.getElementById('feriados-input');
+  const atual = ta.value.trim();
+  const jatem = atual ? atual.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+  const novos = nacionais.filter(f => !jatem.includes(f));
+  ta.value = [...jatem, ...novos].join('\n');
+}
+
+function limparFeriados() {
+  document.getElementById('feriados-input').value = '';
+}
+
+function parseFeriados(texto) {
+  const feriados = new Set();
+  texto.split('\n').forEach(linha => {
+    const s = linha.trim();
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      const d = m[1].padStart(2,'0'), mo = m[2].padStart(2,'0'), y = m[3];
+      feriados.add(`${y}-${mo}-${d}`);
+    }
+  });
+  return feriados;
+}
+
+function fmtDiasSemana(d) {
+  const dias = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+  return dias[d.getDay()];
+}
+
+function fmtDataBR(d) {
+  return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric'});
+}
+
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+function isUtil(date, feriados) {
+  const dow = date.getDay();
+  if (dow === 0 || dow === 6) return false;
+  const key = date.toISOString().slice(0,10);
+  if (feriados.has(key)) return false;
+  return true;
+}
+
+function calcularDias() {
+  // Clear error
+  const errEl = document.getElementById('dias-error');
+  errEl.classList.remove('visible');
+  document.getElementById('dias-resultado').style.display = 'none';
+
+  const qtdRaw = document.getElementById('qtd-dias').value.trim();
+  const dataInicioRaw = document.getElementById('data-inicio').value;
+
+  if (!qtdRaw || isNaN(parseInt(qtdRaw)) || parseInt(qtdRaw) <= 0) {
+    errEl.textContent = 'Informe uma quantidade de dias válida.';
+    errEl.classList.add('visible'); return;
+  }
+  if (!dataInicioRaw) {
+    errEl.textContent = 'Informe a data de início.';
+    errEl.classList.add('visible'); return;
+  }
+
+  const qtd = parseInt(qtdRaw);
+  // Parse date (yyyy-mm-dd from input)
+  const [y,m,d] = dataInicioRaw.split('-').map(Number);
+  const dataInicio = new Date(y, m-1, d);
+
+  // Feriados
+  const feriadosTexto = document.getElementById('feriados-input').value;
+  const feriados = tipoContagem === 'uteis' ? parseFeriados(feriadosTexto) : new Set();
+
+  let dataAtual = new Date(dataInicio);
+  let diasContados = 0;
+  let finsDeSemanaPulados = 0;
+  let feriadosPulados = [];
+  let diasCorridos = 0;
+
+  // Se não incluir início, avança um dia antes de começar
+  if (!incluirInicio) {
+    dataAtual = addDays(dataAtual, 1);
+  }
+
+  if (tipoContagem === 'corridos') {
+    // Dias corridos: simplesmente soma
+    diasContados = qtd;
+    const dataFinal = addDays(dataAtual, qtd - 1);
+    diasCorridos = qtd;
+    renderResultado(dataFinal, qtd, diasCorridos, 0, [], dataInicio);
+  } else {
+    // Dias úteis: avança contando apenas dias úteis
+    while (diasContados < qtd) {
+      const dow = dataAtual.getDay();
+      const key = dataAtual.toISOString().slice(0,10);
+      if (dow === 0 || dow === 6) {
+        finsDeSemanaPulados++;
+      } else if (feriados.has(key)) {
+        const label = `${fmtDataBR(dataAtual)} (${fmtDiasSemana(dataAtual)})`;
+        feriadosPulados.push(label);
+      } else {
+        diasContados++;
+        if (diasContados === qtd) break;
+      }
+      diasCorridos++;
+      dataAtual = addDays(dataAtual, 1);
+    }
+    diasCorridos = diasContados + finsDeSemanaPulados + feriadosPulados.length;
+    renderResultado(dataAtual, qtd, diasCorridos, finsDeSemanaPulados, feriadosPulados, dataInicio);
+  }
+}
+
+function renderResultado(dataFinal, qtd, diasCorridos, fins, feriados, dataInicio) {
+  document.getElementById('res-data-final').textContent =
+    `${fmtDataBR(dataFinal)} (${fmtDiasSemana(dataFinal)})`;
+  document.getElementById('res-inicio').textContent = fmtDataBR(dataInicio);
+  document.getElementById('res-tipo').textContent = tipoContagem === 'uteis' ? 'Dias úteis' : 'Dias corridos';
+  document.getElementById('res-qtd').textContent = qtd + (tipoContagem === 'uteis' ? ' dias úteis' : ' dias corridos');
+  document.getElementById('res-incluir').textContent = incluirInicio ? 'Sim (incluída na contagem)' : 'Não (excluída da contagem)';
+  document.getElementById('res-corridos-total').textContent = diasCorridos + ' dias corridos no total';
+
+  const ferEl = document.getElementById('res-feriados-item');
+  const finsEl = document.getElementById('res-fins-item');
+  if (tipoContagem === 'uteis') {
+    ferEl.style.display = 'block';
+    finsEl.style.display = 'block';
+    document.getElementById('res-feriados-qtd').textContent = feriados.length + ' feriado(s)';
+    document.getElementById('res-fins-qtd').textContent = fins + ' dia(s)';
+
+    const listaEl = document.getElementById('feriados-lista-res');
+    if (feriados.length > 0) {
+      document.getElementById('feriados-lista-itens').innerHTML =
+        feriados.map(f => `<div class="feriados-lista-item">• ${f}</div>`).join('');
+      listaEl.style.display = 'block';
+    } else {
+      listaEl.style.display = 'none';
+    }
+  } else {
+    ferEl.style.display = 'none';
+    finsEl.style.display = 'none';
+    document.getElementById('feriados-lista-res').style.display = 'none';
+  }
+
+  document.getElementById('dias-resultado').style.display = 'block';
+  document.getElementById('dias-resultado').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function novoCálculo() {
+  document.getElementById('dias-resultado').style.display = 'none';
+  document.getElementById('dias-error').classList.remove('visible');
+  // Limpa todos os campos
+  document.getElementById('qtd-dias').value = '';
+  document.getElementById('data-inicio').value = '';
+  document.getElementById('feriados-input').value = '';
+  // Reseta toggles para padrão
+  setTipo('uteis');
+  setIncluir(true);
+  document.getElementById('qtd-dias').focus();
+}
+
+</script>
+</body>
+</html>
