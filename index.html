@@ -98,6 +98,7 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMa
     <button class="menu-btn active" id="m-home" onclick="nav('home')"><span class="menu-icon">🏠</span> Início</button>
     <button class="menu-btn" id="m-fila" onclick="nav('fila')"><span class="menu-icon">📋</span> Consulta — Lugar na Fila</button>
     <button class="menu-btn" id="m-dias" onclick="nav('dias')"><span class="menu-icon">📅</span> Contar Dias</button>
+    <button class="menu-btn" id="m-indicadores" onclick="nav('indicadores')"><span class="menu-icon">📊</span> Indicadores</button>
   </nav>
 
   <main class="main">
@@ -117,6 +118,12 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMa
           <div class="tool-name">Contar Dias</div>
           <div class="tool-desc">Calcule prazos em dias úteis ou corridos com feriados.</div>
           <div class="tool-tag">Dias úteis · Corridos</div>
+        </div>
+        <div class="tool-card" onclick="nav('indicadores')">
+          <div class="tool-icon">📊</div>
+          <div class="tool-name">Indicadores</div>
+          <div class="tool-desc">Painéis Power BI: AME, Atenção Básica, MAC, NGA e UAC.</div>
+          <div class="tool-tag">Power BI</div>
         </div>
       </div>
     </div>
@@ -139,6 +146,15 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMa
         <span class="tool-title">Contar Dias</span>
       </div>
       <iframe class="tool-frame" id="frame-dias" src="dias.html"></iframe>
+    </div>
+    <!-- INDICADORES -->
+    <div class="tool-view" id="v-indicadores">
+      <div class="tool-topbar">
+        <button class="btn-back" onclick="nav('home')">← Início</button>
+        <span class="sep">/</span>
+        <span class="tool-title">Indicadores</span>
+      </div>
+      <iframe class="tool-frame" id="frame-indicadores" src="indicadores.html"></iframe>
     </div>
   </main>
 </div>

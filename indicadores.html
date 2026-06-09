@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Indicadores</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f4f3f0; --surface: #ffffff; --surface2: #f0efe9;
+  --border: rgba(0,0,0,0.10); --border2: rgba(0,0,0,0.18);
+  --text: #1a1917; --text2: #6b6a65; --text3: #aaa9a3;
+  --accent: #1a5fa8; --accent2: rgba(26,95,168,0.08);
+  --radius: 10px; --radius-lg: 14px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── GRID VIEW ── */
+#grid-view { flex: 1; overflow-y: auto; padding: 1.5rem; }
+.grid-header { margin-bottom: 1.5rem; }
+.grid-header h1 { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.grid-header p  { font-size: 13px; color: var(--text2); }
+
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+
+.ind-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.16s;
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative; overflow: hidden;
+}
+.ind-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--card-color, var(--accent));
+}
+.ind-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.10); border-color: var(--card-color, var(--accent)); transform: translateY(-2px); }
+
+.ind-icon { font-size: 28px; }
+.ind-num  { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+.ind-name { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.ind-tag  { font-size: 11px; font-weight: 600; color: var(--card-color, var(--accent)); background: var(--card-bg, var(--accent2)); padding: 3px 8px; border-radius: 20px; width: fit-content; }
+.ind-open { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text3); margin-top: auto; padding-top: 4px; }
+
+/* ── DASHBOARD VIEW ── */
+#dash-view { display: none; flex-direction: column; height: 100%; }
+#dash-view.active { display: flex; }
+
+.dash-topbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.btn-back {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 13px; color: var(--text2); cursor: pointer;
+  background: none; border: none; font-family: inherit;
+  padding: 5px 8px; border-radius: 6px; transition: background 0.13s;
+}
+.btn-back:hover { background: var(--surface2); color: var(--text); }
+.sep { color: var(--border2); }
+.dash-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.btn-newwindow {
+  margin-left: auto; display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: var(--accent); cursor: pointer;
+  background: var(--accent2); border: none; font-family: inherit;
+  padding: 5px 10px; border-radius: 6px; font-weight: 600;
+  transition: opacity 0.13s; text-decoration: none;
+}
+.btn-newwindow:hover { opacity: 0.8; }
+
+.dash-frame { flex: 1; border: none; width: 100%; }
+
+@media(max-width:480px) { .cards-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- GRID DE INDICADORES -->
+<div id="grid-view">
+  <div class="grid-header">
+    <h1>📊 Indicadores</h1>
+    <p>Selecione um painel para visualizar os dados.</p>
+  </div>
+  <div class="cards-grid" id="cards-grid"></div>
+</div>
+
+<!-- DASHBOARD EMBUTIDO -->
+<div id="dash-view">
+  <div class="dash-topbar">
+    <button class="btn-back" onclick="voltarGrid()">← Voltar</button>
+    <span class="sep">/</span>
+    <span class="dash-title" id="dash-title"></span>
+    <a class="btn-newwindow" id="btn-newwindow" href="#" target="_blank" rel="noopener">↗ Abrir em nova aba</a>
+  </div>
+  <iframe class="dash-frame" id="dash-frame" src="" allowfullscreen></iframe>
+</div>
+
+<script>
+const INDICADORES = [
+  {
+    num: 1,
+    nome: 'AME',
+    icone: '🏥',
+    tag: 'Ambulatório',
+    cor: '#1a5fa8',
+    bgCor: 'rgba(26,95,168,0.08)',
+    url: 'https://app.powerbi.com/view?r=eyJrIjoiOGRkMDZiNDAtYjUyNC00MmZmLTgwZGEtMzAxNDM0MmQ2ZjM0IiwidCI6IjI1MTg4MjJiLTcxMzctNDI1MC1hOGJmLTQ3YmI4OTFiYWFjMCJ9'
+  },
+  {
+    num: 2,
+    nome: 'Atenção Básica',
+    icone: '🩺',
+    tag: 'Atenção Básica',
+    cor: '#27500A',
+    bgCor: 'rgba(39,80,10,0.08)',
+    url: 'https://app.powerbi.com/view?r=eyJrIjoiNDE3ZTBkYTUtMDUyYy00YTY4LWIxZjEtMDIzNmIwOTg5MzU2IiwidCI6IjI1MTg4MjJiLTcxMzctNDI1MC1hOGJmLTQ3YmI4OTFiYWFjMCJ9'
+  },
+  {
+    num: 3,
+    nome: 'Média e Alta Complexidade',
+    icone: '🔬',
+    tag: 'MAC',
+    cor: '#6b21a8',
+    bgCor: 'rgba(107,33,168,0.08)',
+    url: 'https://app.powerbi.com/view?r=eyJrIjoiMjU2NDk1YTYtMGJiYy00MmU2LThhODUtNmEyY2MxNzg1NTc4IiwidCI6IjI1MTg4MjJiLTcxMzctNDI1MC1hOGJmLTQ3YmI4OTFiYWFjMCJ9'
+  },
+  {
+    num: 4,
+    nome: 'NGA',
+    icone: '📋',
+    tag: 'NGA',
+    cor: '#b45309',
+    bgCor: 'rgba(180,83,9,0.08)',
+    url: 'https://app.powerbi.com/view?r=eyJrIjoiZDAyNTI4MDAtMGE3Yi00NDNlLWI4MzAtNDg1ZTc4NDA4MGQzIiwidCI6IjI1MTg4MjJiLTcxMzctNDI1MC1hOGJmLTQ3YmI4OTFiYWFjMCJ9'
+  },
+  {
+    num: 5,
+    nome: 'UAC',
+    icone: '🏨',
+    tag: 'UAC',
+    cor: '#0f766e',
+    bgCor: 'rgba(15,118,110,0.08)',
+    url: 'https://app.powerbi.com/view?r=eyJrIjoiOGQ5NzRmM2MtNjEwNS00ZDEwLWI5NGUtOWFlYzdmYTkzZDY4IiwidCI6IjI1MTg4MjJiLTcxMzctNDI1MC1hOGJmLTQ3YmI4OTFiYWFjMCJ9'
+  }
+];
+
+// Renderiza os cards
+const grid = document.getElementById('cards-grid');
+INDICADORES.forEach(ind => {
+  const card = document.createElement('div');
+  card.className = 'ind-card';
+  card.style.setProperty('--card-color', ind.cor);
+  card.style.setProperty('--card-bg', ind.bgCor);
+  card.innerHTML = `
+    <div class="ind-icon">${ind.icone}</div>
+    <div>
+      <div class="ind-num">Indicador ${ind.num}</div>
+      <div class="ind-name">${ind.nome}</div>
+    </div>
+    <div class="ind-tag">${ind.tag}</div>
+    <div class="ind-open">▶ Clique para visualizar</div>`;
+  card.onclick = () => abrirDashboard(ind);
+  grid.appendChild(card);
+});
+
+function abrirDashboard(ind) {
+  document.getElementById('dash-title').textContent = ind.icone + ' ' + ind.nome;
+  document.getElementById('btn-newwindow').href = ind.url;
+  document.getElementById('dash-frame').src = ind.url;
+  document.getElementById('grid-view').style.display = 'none';
+  document.getElementById('dash-view').classList.add('active');
+}
+
+function voltarGrid() {
+  document.getElementById('dash-frame').src = '';
+  document.getElementById('dash-view').classList.remove('active');
+  document.getElementById('grid-view').style.display = 'block';
+}
+</script>
+</body>
+</html>
