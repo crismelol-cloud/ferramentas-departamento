@@ -284,28 +284,73 @@ const GITHUB_BRANCH = 'main';
 const URL_AIH  = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/AIH.xlsx`;
 const URL_APAC = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/APAC.xlsx`;
 
-async function carregarDoGitHub() {
-  for (const tipo of ['aih', 'apac']) {
-    const url = tipo === 'aih' ? URL_AIH : URL_APAC;
-    const nome = tipo === 'aih' ? 'AIH.xlsx' : 'APAC.xlsx';
-    const statusEl = document.getElementById('status-' + tipo);
-    const iconEl   = document.getElementById('icon-' + tipo);
-    const nameEl   = document.getElementById('name-' + tipo);
-    try {
-      const res = await fetch(url + '?t=' + Date.now()); // evita cache
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const buf = await res.arrayBuffer();
+async function carregarUm(tipo) {
+  const url  = tipo === 'aih' ? URL_AIH : URL_APAC;
+  const nome = tipo === 'aih' ? 'AIH.xlsx' : 'APAC.xlsx';
+  const statusEl = document.getElementById('status-' + tipo);
+  const iconEl   = document.getElementById('icon-' + tipo);
+  const nameEl   = document.getElementById('name-' + tipo);
+
+  // Tenta usar cache do sessionStorage para não baixar de novo
+  const cacheKey = 'wb_' + tipo + '_' + GITHUB_BRANCH;
+  try {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      const buf = Uint8Array.from(atob(cached), c => c.charCodeAt(0)).buffer;
       wbs[tipo] = XLSX.read(new Uint8Array(buf), {type:'array', cellDates:true});
       iconEl.textContent = '✅';
-      nameEl.textContent = nome + ' carregado';
+      nameEl.textContent = nome + ' (cache)';
       statusEl.classList.add('ok');
-    } catch(e) {
-      iconEl.textContent = '❌';
-      nameEl.textContent = 'Erro ao carregar ' + nome;
-      statusEl.classList.add('err');
-      statusEl.querySelector('.status-hint').textContent = e.message + ' — ' + url.split('?')[0];
+      return;
     }
+  } catch(e) { /* cache inválido, baixa de novo */ }
+
+  try {
+    nameEl.textContent = 'Baixando ' + nome + '...';
+    const res = await fetch(url + '?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    // Lê com progresso
+    const reader = res.body.getReader();
+    const total = parseInt(res.headers.get('content-length') || '0');
+    let received = 0;
+    const chunks = [];
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      received += value.length;
+      if (total > 0) {
+        const pct = Math.round(received / total * 100);
+        nameEl.textContent = nome + ' — ' + pct + '%';
+      }
+    }
+    const buf = new Uint8Array(chunks.reduce((a,c) => a + c.length, 0));
+    let offset = 0;
+    for (const chunk of chunks) { buf.set(chunk, offset); offset += chunk.length; }
+
+    wbs[tipo] = XLSX.read(buf, {type:'array', cellDates:true});
+
+    // Salva no cache (só se couber — arquivos grandes podem estourar)
+    try {
+      const b64 = btoa(String.fromCharCode(...buf));
+      sessionStorage.setItem(cacheKey, b64);
+    } catch(e) { /* arquivo muito grande para cache */ }
+
+    iconEl.textContent = '✅';
+    nameEl.textContent = nome + ' pronto';
+    statusEl.classList.add('ok');
+  } catch(e) {
+    iconEl.textContent = '❌';
+    nameEl.textContent = 'Erro ao carregar ' + nome;
+    statusEl.classList.add('err');
+    statusEl.querySelector('.status-hint').textContent = e.message;
   }
+}
+
+async function carregarDoGitHub() {
+  // Carrega AIH e APAC em paralelo (ao mesmo tempo)
+  await Promise.all([carregarUm('aih'), carregarUm('apac')]);
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
