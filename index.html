@@ -99,6 +99,7 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMa
     <button class="menu-btn" id="m-fila" onclick="nav('fila')"><span class="menu-icon">📋</span> Consulta — Lugar na Fila</button>
     <button class="menu-btn" id="m-dias" onclick="nav('dias')"><span class="menu-icon">📅</span> Contar Dias</button>
     <button class="menu-btn" id="m-indicadores" onclick="nav('indicadores')"><span class="menu-icon">📊</span> Indicadores</button>
+    <button class="menu-btn" id="m-monitoramento" onclick="nav('monitoramento')"><span class="menu-icon">📈</span> Monitoramento</button>
   </nav>
 
   <main class="main">
@@ -124,6 +125,12 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMa
           <div class="tool-name">Indicadores</div>
           <div class="tool-desc">Painéis Power BI: AME, Atenção Básica, MAC, NGA e UAC.</div>
           <div class="tool-tag">Power BI</div>
+        </div>
+        <div class="tool-card" onclick="nav('monitoramento')">
+          <div class="tool-icon">📈</div>
+          <div class="tool-name">Monitoramento</div>
+          <div class="tool-desc">Planilhas on-line: taxas de ocupação, internações, campanhas e mais.</div>
+          <div class="tool-tag">Google Sheets</div>
         </div>
       </div>
     </div>
@@ -155,6 +162,16 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMa
         <span class="tool-title">Indicadores</span>
       </div>
       <iframe class="tool-frame" id="frame-indicadores" src="indicadores.html"></iframe>
+    </div>
+
+    <!-- MONITORAMENTO -->
+    <div class="tool-view" id="v-monitoramento">
+      <div class="tool-topbar">
+        <button class="btn-back" onclick="nav('home')">← Início</button>
+        <span class="sep">/</span>
+        <span class="tool-title">Monitoramento</span>
+      </div>
+      <iframe class="tool-frame" id="frame-monitoramento" src="monitoramento.html"></iframe>
     </div>
   </main>
 </div>
