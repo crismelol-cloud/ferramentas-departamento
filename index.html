@@ -100,6 +100,7 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMa
     <button class="menu-btn" id="m-dias" onclick="nav('dias')"><span class="menu-icon">📅</span> Contar Dias</button>
     <button class="menu-btn" id="m-indicadores" onclick="nav('indicadores')"><span class="menu-icon">📊</span> Indicadores</button>
     <button class="menu-btn" id="m-monitoramento" onclick="nav('monitoramento')"><span class="menu-icon">📈</span> Monitoramento</button>
+    <button class="menu-btn" id="m-links" onclick="nav('links')"><span class="menu-icon">🔗</span> Links Úteis</button>
   </nav>
 
   <main class="main">
@@ -131,6 +132,12 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMa
           <div class="tool-name">Monitoramento</div>
           <div class="tool-desc">Planilhas on-line: taxas de ocupação, internações, campanhas e mais.</div>
           <div class="tool-tag">Google Sheets</div>
+        </div>
+        <div class="tool-card" onclick="nav('links')">
+          <div class="tool-icon">🔗</div>
+          <div class="tool-name">Links Úteis</div>
+          <div class="tool-desc">Atalhos para e-mail, SEI, holerite, SIRESP, GitHub e outros sistemas.</div>
+          <div class="tool-tag">Atalhos</div>
         </div>
       </div>
     </div>
@@ -172,6 +179,16 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMa
         <span class="tool-title">Monitoramento</span>
       </div>
       <iframe class="tool-frame" id="frame-monitoramento" src="monitoramento.html"></iframe>
+    </div>
+
+    <!-- LINKS ÚTEIS -->
+    <div class="tool-view" id="v-links">
+      <div class="tool-topbar">
+        <button class="btn-back" onclick="nav('home')">← Início</button>
+        <span class="sep">/</span>
+        <span class="tool-title">Links Úteis</span>
+      </div>
+      <iframe class="tool-frame" id="frame-links" src="links.html"></iframe>
     </div>
   </main>
 </div>
